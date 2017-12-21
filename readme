@@ -1,0 +1,85 @@
+这是一个包含长连接推送、异步任务和http服务的简易框架
+
+目录结构
+bootstrap     //普通http服务入口文件，配合nginx使用
+backServer    //异步http服务器
+longConnect   //长连接推送服务
+/assets       //img、js、css资源目录
+/base/app     //基本的类，如控制器类、DB实例类
+/base/params  //项目的一些配置参数
+/controller   //具体的控制器
+/console      //可以跑的脚本
+/component    //一个功能模块化后可复用的函数集合
+/models       //每个数据表的模型，关于一个表的CRUD
+/view         //以控制器为文件夹名来组织的视图文件
+
+长连接客户端的参数
+controler     //交由处理的控制器
+action        //交由处理的方法 
+sent          //0是注册,1是发送
+type          //one单独推送，group群推送
+data[event]   //具体的参数[业务标识]
+data[param]   //具体的参数[用户标识][单个推送时才有]
+应用实例：
+1.直播结束，向所有客户端推送消息，转到下一阶段
+2.扫描二维码去支付，支付后获取订单状态自动转跳到其他页面
+
+配置参数
+redis和mysql的host及port等配置
+
+示例
+长连接demo
+	打开本地redis
+	启动长连接服务 php longConnect.php
+	HOST/client/qrcode     //扫二维码页面
+	HOST/client/paid       //支付点击页面
+	HOST/client/show       //直播页面
+	HOST/client/console    //直播控制台
+
+后台任务demo
+  启动异步http服务器 php backServer.php
+	HOST:9501/task/demo    //后台任务demo
+	会在achilles库log表里添加一条记录
+
+建表语句
+  create databases achilles;
+  CREATE TABLE `log` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `desc` varchar(255) DEFAULT NULL,
+    `date` varchar(255) DEFAULT NULL,
+    `time` int(11) DEFAULT NULL,
+    PRIMARY KEY (`id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  
+nginx配置
+server {
+   listen  80;
+   server_name achilles.cn;
+   root /Applications/XAMPP/xamppfiles/htdocs/Achilles;
+   index index.html
+   bootstrap.php;
+   location / {
+        try_files $uri $uri/
+        /bootstrap.php$is_args$query_string;
+   }
+   location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME
+        $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+    location ~ .*\.(gif|jpg|jpeg|bmp|png|ico)$
+    {
+        root /Users/fanzhen/htdocs/Achilles/assets/img;
+    }
+    location ~ .*\.css$
+    {
+        root /Users/fanzhen/htdocs/Achilles/assets/css;
+    }
+    location ~ .*\.js$
+    {
+        root /Users/fanzhen/htdocs/Achilles/assets/js;
+    }
+}
