@@ -55,7 +55,19 @@ if($class === false){
 if(method_exists($class, $action.'Action') === false){
      error(500,'action '.$action.' not exist');
 }
-//调用对应的方法
+//先记个访问记录
+if($script_url != '/check/log'){
+    $visitor = $_SERVER["REMOTE_ADDR"];
+    $log_info = $visitor.'@'.date('H',time()).'h@'.$script_url."\n";
+    $log_file = __DIR__ . '/log/visitor/' . date('Y-m-d',time()) . '.log';
+    //访问日志文件按天储存，判断文件的存在
+    if(!file_exists($log_file)){
+        $fp=fopen($log_file,"w+");
+    }
+    //写入log
+    file_put_contents($log_file, $log_info, FILE_APPEND);
+}
+//最后调用对应的方法
 $class->{$action.'Action'}();
 
 //统一错误返回
