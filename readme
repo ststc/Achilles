@@ -44,6 +44,15 @@ redis和mysql的host及port等配置
 	HOST:9501/task/demo    //后台任务demo
 	会在achilles库log表里添加一条记录
 
+控制台demo[gearman]
+  //查看所有命令
+  php console.php
+  //启动gearman
+  php console.php Gearman:worker
+  //gearman客户端[显示及反转]
+  php console.php Gearman:client normal something
+  php console.php Gearman:client reverse something
+
 建表语句
   create databases achilles;
   CREATE TABLE `log` (
