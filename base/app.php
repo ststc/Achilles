@@ -25,6 +25,18 @@ class BaseCtrl{
 }
 
 /**
+ * 控制台基类
+ */
+class BaseCmd{
+    //请求
+    public $params;
+    //构造函数
+    public function __construct($params){
+        $this->params = $params;
+    }
+}
+
+/**
  * model基类
  */
 class BaseModel{
