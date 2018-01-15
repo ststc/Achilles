@@ -1,0 +1,12 @@
+//安装gearman
+brew install gearmand
+
+//PHP扩展[php版本不要高于6]
+去http://pecl.php.net/package/gearman下载
+phpize
+./configure --with-php-config=/Applications/XAMPP/xamppfiles/bin/php-config
+
+                 --with-gearman=/usr/local/Cellar/gearman/1.1.18
+sudo make
+sudo make install
+添加extension=gearman.so至php.ini
