@@ -1,0 +1,24 @@
+安装
+brew install rabbitmq
+启动服务
+/usr/local/Cellar/rabbitmq/3.7.2/sbin/rabbitmq-server
+加载管理插件
+./rabbitmq-plugins enable rabbitmq_management
+登录
+http://localhost:15672/ 默认guest guest
+
+安装依赖库
+brew install popt xmlto doxygen openssl
+git clone https://github.com/alanxz/rabbitmq-c
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl/include  ..
+make install
+
+安装amqp
+https://pecl.php.net/package/amqp
+
+/usr/bin/phpize
+./configure --with-php-config=/usr/bin/php-config --with-amqp --with-librabbitmq-dir=/usr/local
+make
+sudo make install
+sudo vim php.ini  && add extension=amqp.so;

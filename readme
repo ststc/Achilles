@@ -1,6 +1,9 @@
+:)include(./gearman)
+:)include(./rabbitmq)
+#--------------------------------------------
 这是一个包含长连接推送、异步任务和http服务的简易框架
-并集成了gearman
-
+并集成了gearman和rabbitmq
+#--------------------------------------------
 目录结构
 bootstrap     //普通http服务入口文件，配合nginx使用
 backServer    //异步http服务器
@@ -15,7 +18,10 @@ console       //脚本任务
 /component    //一个功能模块化后可复用的函数集合
 /models       //每个数据表的模型，关于一个表的CRUD
 /view         //以控制器为文件夹名来组织的视图文件
-
+#--------------------------------------------
+配置参数
+redis和mysql的host及port等配置
+#--------------------------------------------
 长连接客户端的参数
 controler     //交由处理的控制器
 action        //交由处理的方法 
@@ -26,11 +32,9 @@ data[param]   //具体的参数[用户标识][单个推送时才有]
 应用实例：
 1.直播结束，向所有客户端推送消息，转到下一阶段
 2.扫描二维码去支付，支付后获取订单状态自动转跳到其他页面
-
-配置参数
-redis和mysql的host及port等配置
-
+#--------------------------------------------
 示例
+#--------------------------------------------
 长连接demo
 	打开本地redis
 	启动长连接服务 php longConnect.php
@@ -38,12 +42,12 @@ redis和mysql的host及port等配置
 	HOST/client/paid       //支付点击页面
 	HOST/client/show       //直播页面
 	HOST/client/console    //直播控制台
-
+#--------------------------------------------
 后台任务demo
   启动异步http服务器 php backServer.php
 	HOST:9501/task/demo    //后台任务demo
 	会在achilles库log表里添加一条记录
-
+#--------------------------------------------
 控制台demo[gearman]
   //查看所有命令
   php console.php
@@ -52,7 +56,32 @@ redis和mysql的host及port等配置
   //gearman客户端[显示及反转]
   php console.php Gearman:client normal something
   php console.php Gearman:client reverse something
+#--------------------------------------------
+IM示例[rabbitmq]
+  #发送端
+  @1: /usr/bin/php console.php Rabbitmq:chat uid_1
+  @3: /usr/bin/php console.php Rabbitmq:chat uid_3
+  #接收端
+  /usr/bin/php console.php Rabbitmq:message uid_1
+  /usr/bin/php console.php Rabbitmq:message uid_2
+  /usr/bin/php console.php Rabbitmq:message uid_3
+  /usr/bin/php console.php Rabbitmq:message uid_4
+  #关系
+  gid_1 = uid_1 + uid_2 + uid_3
+  gid_2 = uid_3 + uid_4
 
+  #1v1单聊
+  1给2发消息
+  @1: [uid_2:msg1]
+  3给2发消息
+  @3: [uid_2:msg2]
+  @3: [uid_4:msg3]
+  2收到1和3的消息 && 4收到3的消息
+
+  #群消息
+  @1: [gid_1:group_msg]
+  uid2、uid3收到信息，而uid1、uid4没有
+#--------------------------------------------
 建表语句
   create databases achilles;
   CREATE TABLE `log` (
@@ -62,7 +91,7 @@ redis和mysql的host及port等配置
     `time` int(11) DEFAULT NULL,
     PRIMARY KEY (`id`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-  
+#--------------------------------------------
 nginx配置
 server {
    listen  80;

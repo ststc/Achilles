@@ -74,6 +74,7 @@ function cosole_list(){
             include_once($path.'/'.$value);
             $class = str_replace('.php', '', $value);
             $tmp = get_class_methods($class);
+            $methods = [];
             //过滤构造函数
             if(!empty($tmp)){
                 foreach($tmp as $v){
