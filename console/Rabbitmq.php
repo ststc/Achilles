@@ -3,6 +3,14 @@ include_once("toolsComponent.php");
 
 //Rabbitmq相关
 class Rabbitmq extends BaseCmd{
+    
+    //群组关系
+    public $group = [
+                'uid_1' => ['gid_1'],
+                'uid_2' => ['gid_1'],
+                'uid_3' => ['gid_1', 'gid_2'],
+                'uid_4' => ['gid_2'],
+           ];
     /**
      * 发送聊天信息
      */
@@ -24,8 +32,6 @@ class Rabbitmq extends BaseCmd{
                 'password' => 'guest',     //登录密码
                 'vhost'    => '/'          //虚拟主机
             );
-        //单聊交换机
-        $exchange = 'chat';
         //创建连接
         $conn = new AMQPConnection($conn_args);
         if(!$conn->connect()){
@@ -33,16 +39,17 @@ class Rabbitmq extends BaseCmd{
         }
         //创建频道
         $channel = new AMQPChannel($conn);
-        //创建交换机
+
+        //创建单聊交换机
         $ex = new AMQPExchange($channel);
         //交换机名称
-        $ex->setName($exchange);
+        $ex->setName('chat');
         $ex->setType(AMQP_EX_TYPE_DIRECT);//direct类型
         $ex->setFlags(AMQP_DURABLE);//持久化
-        //声明一个交换机
+        //声明单聊交换机
         echo "Exchange Status: ".$ex->declare()."\n";
         //开始聊天
-        toolsComponent::chat($send_uid, $ex);   
+        toolsComponent::chat($send_uid, $ex, $channel);   
     }
 
     /**
@@ -66,9 +73,6 @@ class Rabbitmq extends BaseCmd{
                 'password' => 'guest',     //登录密码
                 'vhost'    => '/'          //虚拟主机
             );
-        //队列信息
-        $exchange  = 'chat';
-
         //创建连接
         $conn = new AMQPConnection($conn_args);
         if(!$conn->connect()){
@@ -76,15 +80,15 @@ class Rabbitmq extends BaseCmd{
         }
         //创建频道
         $channel = new AMQPChannel($conn);
-        //创建交换机
+
+        //创建单聊交换机
         $ex = new AMQPExchange($channel);
         //交换机名称
-        $ex->setName($exchange);
+        $ex->setName('chat');
         $ex->setType(AMQP_EX_TYPE_DIRECT);//direct类型
         $ex->setFlags(AMQP_DURABLE);//持久化
         //声明一个交换机
         echo "Exchange Status: ".$ex->declare()."\n";
-
         //创建队列
         $q = new AMQPQueue($channel);
         //队列名称
@@ -92,8 +96,24 @@ class Rabbitmq extends BaseCmd{
         $q->setFlags(AMQP_DURABLE); //持久化
         echo "Queue Status: ".$q->declare()."\n";
         //绑定交换机与队列，并指定路由键 
-        echo 'Queue Bind: '.$q->bind($exchange, $receive_uid)."\n";
-
+        echo 'Queue Bind: '.$q->bind('chat', $receive_uid)."\n";
+        
+        //获取群组关系
+        $all = $this->group;
+        if(isset($all[$receive_uid])){
+            $groups = $all[$receive_uid];
+            foreach($groups as $v){
+                //创建群聊交换机
+                $g_ex = new AMQPExchange($channel);
+                //交换机名称
+                $g_ex->setName($v);
+                $g_ex->setType(AMQP_EX_TYPE_FANOUT);//fanout类型
+                $g_ex->setFlags(AMQP_DURABLE);//持久化
+                //声明群聊交换机
+                echo "Exchange ".$v." Status: ".$g_ex->declare()."\n";
+                echo 'Queue '.$v.' Bind: '.$q->bind($v, '')."\n";             
+            }
+        }
         //自动ACK应答
         $q->consume('processMessage', AMQP_AUTOACK);
         //断开连接

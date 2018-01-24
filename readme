@@ -49,9 +49,11 @@ data[param]   //具体的参数[用户标识][单个推送时才有]
 	会在achilles库log表里添加一条记录
 #--------------------------------------------
 控制台demo[gearman]
+  //启动gearman
+  /usr/local/Cellar/gearman/1.1.18/sbin/gearmand -d
   //查看所有命令
   php console.php
-  //启动gearman
+  //启动worker
   php console.php Gearman:worker
   //gearman客户端[显示及反转]
   php console.php Gearman:client normal something
@@ -69,7 +71,6 @@ IM示例[rabbitmq]
   #关系
   gid_1 = uid_1 + uid_2 + uid_3
   gid_2 = uid_3 + uid_4
-
   #1v1单聊
   1给2发消息
   @1: [uid_2:msg1]
@@ -79,7 +80,7 @@ IM示例[rabbitmq]
   2收到1和3的消息 && 4收到3的消息
 
   #群消息
-  @1: [gid_1:group_msg]
+  @1: [gid_1:this is group message!]
   uid2、uid3收到信息，而uid1、uid4没有
 #--------------------------------------------
 建表语句
