@@ -11,6 +11,8 @@ class Rabbitmq extends BaseCmd{
                 'uid_3' => ['gid_1', 'gid_2'],
                 'uid_4' => ['gid_2'],
            ];
+    //自我标识
+    public static $me;
     /**
      * 发送聊天信息
      */
@@ -60,7 +62,8 @@ class Rabbitmq extends BaseCmd{
         $params = $this->params;
         if(isset($params[2])){
             $receive_uid  = $params[2];
-            $queue = $params[2];
+            $queue        = $params[2];
+            self::$me     = $params[2];
             echo "receiver is ".$receive_uid."\n";
         }else{
             echo "receiver miss\n";die;
@@ -132,14 +135,18 @@ function processMessage($envelope, $queue){
     foreach($__ as $k=>$v){
         $msg[$k] = $v;
     }
-    //处理消息
-    echo "#-----------------#\n";
-    if(isset($msg['group'])){
-        echo "From ".$msg['from']." in ".$msg['group']."\n";
-    }else{
-        echo "From ".$msg['from']."\n";
-    }
-    echo "msg: ".$msg['msg']."\n";
-    echo "time: ".$msg['time']."\n";
-    echo "#-----------------#\n";     
+    //自己的信息不处理
+    $me = Rabbitmq::$me;
+    if($msg['from'] != $me){
+        //处理消息
+        echo "#-----------------#\n";
+        if(isset($msg['group'])){
+            echo "From ".$msg['from']." in ".$msg['group']."\n";
+        }else{
+            echo "From ".$msg['from']."\n";
+        }
+        echo "msg: ".$msg['msg']."\n";
+        echo "time: ".$msg['time']."\n";
+        echo "#-----------------#\n";
+    }    
 }
